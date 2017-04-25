@@ -78,6 +78,7 @@ namespace AddressBook
                     Console.WriteLine($">{matcher}");
                 }
             }
+
             Console.WriteLine("Press Enter to continue...");
             Console.ReadLine();
         }
@@ -136,6 +137,7 @@ namespace AddressBook
                 Console.WriteLine($"> {contact}");
             }
 
+            Console.ReadLine();
             Console.ReadLine();
         }
 
