@@ -1,6 +1,6 @@
 ﻿namespace AddressBook
 {
-    public abstract class Contact
+    public abstract class Contact:IMatchATerm
     {
         public Contact(string phoneNumber)
         {
