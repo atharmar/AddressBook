@@ -8,7 +8,10 @@ namespace AddressBook
         public Rolodex()
         {
             _contacts = new List<Contact>();
-            _recipes  = new List<Recipe>();
+            _recipes = new Dictionary<RecipeType, List<Recipe>>();
+            _recipes.Add(RecipeType.Appetizers, new List<Recipe>()); // Add if there is not one or it throw exception           
+            _recipes[RecipeType.Entrees] = new List<Recipe>();  //override whats out there and can use "COntainsKey check"
+            _recipes.Add(RecipeType.Desserts, new List<Recipe>());
         }
 
         public void DoStuff()
@@ -44,6 +47,9 @@ namespace AddressBook
                     case MenuOption.AddRecipe:
                         DoAddRecipe();
                         break;
+                    case MenuOption.ListRecipes:
+                        DoListRecipes();
+                        break;
                     case MenuOption.SearchEverything:
                         DoSearchEverything();
                         break;
@@ -59,7 +65,18 @@ namespace AddressBook
             Console.WriteLine("Please enter your recipe title");
             string title = GetNonEmptyStringFromUser();
             Recipe recipe = new Recipe(title);
-            _recipes.Add(recipe);
+            Console.WriteLine("What kind of recipe is this?");
+            for (int i =0; i < (int)RecipeType.UPPER_LIMIT; i += 1)
+            {
+                Console.WriteLine($"{i}.{(RecipeType)i}");
+            }
+            /* string input = Console.ReadLine();
+            int num  = int.Parse(input);
+            RecipeType  = (RecipeType) num; 
+            one line code below replace all the above 3 */
+            RecipeType choice = (RecipeType) int.Parse(Console.ReadLine());
+            List<Recipe> specificRecipes = _recipes[choice];
+            specificRecipes.Add(recipe);
         }
 
         private void DoSearchEverything()
@@ -70,7 +87,9 @@ namespace AddressBook
             string term = GetNonEmptyStringFromUser();
             List<IMatchATerm> matchables = new List<IMatchATerm>();
             matchables.AddRange(_contacts);
-            matchables.AddRange(_recipes);
+            matchables.AddRange(_recipes[RecipeType.Appetizers]);
+            matchables.AddRange(_recipes[RecipeType.Entrees]);
+            matchables.AddRange(_recipes[RecipeType.Desserts]);
             foreach (IMatchATerm matcher in matchables)
             {
                 if (matcher.Matches(term))
@@ -141,6 +160,25 @@ namespace AddressBook
             Console.ReadLine();
         }
 
+        private void DoListRecipes()
+        {
+            Console.Clear();
+            Console.WriteLine("RECIPES");
+
+            foreach (RecipeType recipetype in _recipes.Keys)
+            {
+                Console.WriteLine(recipetype);
+                List<Recipe> specificRecipes = _recipes[recipetype];
+                foreach (Recipe recipe in specificRecipes)
+                {
+                    Console.WriteLine($"\t{recipe}");
+                }
+                Console.WriteLine();
+            }
+            Console.ReadLine();
+        }
+
+
         private void DoAddCompany()
         {
             Console.Clear();
@@ -181,16 +219,44 @@ namespace AddressBook
             return input;
         }
 
+        private int GetNumberFromUser()
+        {
+            while (true)
+            {
+                try
+                {
+                    string input = Console.ReadLine();
+                    return int.Parse(input);
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine("you should type a number");
+                }
+                catch (InvalidOperationException)
+                {
+                    Console.WriteLine("THAT WAS BAD! DO AGAIN");
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Capture any kind of exception")
+                }
+                finally
+                {
+                    Console.WriteLine("This will always be printed")
+
+                }
+            }
+        }
+
         private MenuOption GetMenuOption()
         {
-            string input = Console.ReadLine();
-            int choice = int.Parse(input);
+
+            int choice = GetNumberFromUser();
 
             while (choice < 0 || choice > (int)MenuOption.UPPER_LIMIT)
             {
                 Console.WriteLine("That is not valid.");
-                input = Console.ReadLine();
-                choice = int.Parse(input);
+                choice = GetNumberFromUser();
             }
 
             return (MenuOption)choice;
@@ -207,7 +273,8 @@ namespace AddressBook
             Console.WriteLine("5. Remove a contact");
             Console.WriteLine("------------------------");
             Console.WriteLine("6. Add Recipe");
-            Console.WriteLine("7. Search Everything");
+            Console.WriteLine("7. List all Recipes");
+            Console.WriteLine("8. Search Everything");
             Console.WriteLine();
             Console.WriteLine("0. Exit");
             Console.WriteLine();
@@ -215,6 +282,6 @@ namespace AddressBook
         }
 
         private List<Contact> _contacts;
-        private List<Recipe> _recipes;
+        private Dictionary<RecipeType, List<Recipe>> _recipes;
     }
 }
