@@ -4,6 +4,8 @@ namespace AddressBook
 {
     class Program
     {
+
+        /* I love coding */
         static void Main(string[] args)
         {
             string name = ConfigurationManager.AppSettings["ApplicationName"];
