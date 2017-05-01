@@ -5,7 +5,7 @@ namespace AddressBook
 {
     public class Rolodex
     {
-        public Rolodex(ContactsRepository contactsRepo, RecipesRepository recipesRepo)
+        public Rolodex(IHandleContacts contactsRepo, IHandleRecipes recipesRepo)
         {
             _contactsRepository = contactsRepo;
             _recipesRepository = recipesRepo;
@@ -284,7 +284,7 @@ namespace AddressBook
 
         private readonly List<Contact> _contacts;
         private Dictionary<RecipeType, List<Recipe>> _recipes;
-        private readonly ContactsRepository _contactsRepository;
-        private readonly RecipesRepository _recipesRepository;
+        private readonly IHandleContacts _contactsRepository;
+        private readonly IHandleRecipes _recipesRepository;
     }
 }

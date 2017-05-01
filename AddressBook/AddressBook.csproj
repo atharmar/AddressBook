@@ -47,6 +47,8 @@
     <Compile Include="Company.cs" />
     <Compile Include="Contact.cs" />
     <Compile Include="ContactsRepository.cs" />
+    <Compile Include="IHandleContacts.cs" />
+    <Compile Include="IHandleRecipes.cs" />
     <Compile Include="IMatchable.cs" />
     <Compile Include="MenuOption.cs" />
     <Compile Include="Person.cs" />
