@@ -4,7 +4,7 @@ using System.IO;
 
 namespace AddressBook
 {
-    internal class ContactsRepository
+    public class ContactsRepository
     {
         private string _contactsFileName;
 
@@ -13,7 +13,7 @@ namespace AddressBook
             _contactsFileName = contactsFileName;
         }
 
-        internal List<Contact> GetAllContacts()
+        public List<Contact> GetAllContacts()
         {
             List<Contact> contacts = new List<Contact>();
             using (StreamReader reader = File.OpenText(_contactsFileName))
@@ -44,7 +44,7 @@ namespace AddressBook
             return contacts;
         }
 
-        internal void ReplaceAllContacts(List<Contact> listToSave)
+        public void ReplaceAllContacts(List<Contact> listToSave)
         {
             using (StreamWriter writer = File.CreateText(_contactsFileName))
             {
@@ -66,7 +66,7 @@ namespace AddressBook
         }
 
 
-        internal void CreateCompany(string name, string phoneNumber)
+        public void CreateCompany(string name, string phoneNumber)
         {
             using (StreamWriter writer = File.AppendText(_contactsFileName))
             {
@@ -75,7 +75,7 @@ namespace AddressBook
             }
         }
 
-        internal void CreatePerson(string firstName, string lastName, string phoneNumber)
+        public void CreatePerson(string firstName, string lastName, string phoneNumber)
         {
             using (StreamWriter writer = File.AppendText(_contactsFileName))
             {

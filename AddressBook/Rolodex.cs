@@ -5,11 +5,10 @@ namespace AddressBook
 {
     public class Rolodex
     {
-        public Rolodex(string connectionString, string contactsFileName)
+        public Rolodex(ContactsRepository contactsRepo, RecipesRepository recipesRepo)
         {
-
-            _contactsRepository = new ContactsRepository(contactsFileName);
-            _recipesRepository = new RecipesRepository(connectionString);
+            _contactsRepository = contactsRepo;
+            _recipesRepository = recipesRepo;
 
             _contacts = new List<Contact>();
             _recipes = new Dictionary<RecipeType, List<Recipe>>();

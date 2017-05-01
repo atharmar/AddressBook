@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 
 namespace AddressBook
 {
-    internal class RecipesRepository
+    public class RecipesRepository
     {
         private string _connectionString;
 
