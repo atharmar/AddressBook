@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 
@@ -9,15 +7,16 @@ namespace AddressBook
 {
     public class Rolodex
     {
-        public Rolodex(string connectionString)
+        public Rolodex(string connectionString, string contactsFileName)
         {
+            _contactsFileName = contactsFileName;
             _connectionString = connectionString;
             _contacts = new List<Contact>();
             _recipes = new Dictionary<RecipeType, List<Recipe>>();
-            _recipes.Add(RecipeType.Appetizers, new List<Recipe>()); // Add if there is not one or it throw exception           
-            _recipes[RecipeType.Entrees] = new List<Recipe>();  //override whats out there and can use "COntainsKey check"
-            _recipes.Add(RecipeType.Desserts, new List<Recipe>());         
-           
+
+            _recipes.Add(RecipeType.Appetizers, new List<Recipe>());
+            _recipes[RecipeType.Entreés] = new List<Recipe>();
+            _recipes.Add(RecipeType.Desserts, new List<Recipe>());
         }
 
         public void DoStuff()
@@ -53,11 +52,11 @@ namespace AddressBook
                     case MenuOption.AddRecipe:
                         DoAddRecipe();
                         break;
-                    case MenuOption.ListRecipes:
-                        DoListRecipes();
-                        break;
                     case MenuOption.SearchEverything:
                         DoSearchEverything();
+                        break;
+                    case MenuOption.ListReceipes:
+                        DoListRecipes();
                         break;
                 }
                 ShowMenu();
@@ -65,72 +64,119 @@ namespace AddressBook
             }
         }
 
-        private void DoAddRecipe()
+        private void DoListRecipes()
         {
             Console.Clear();
-            Console.WriteLine("Please enter your recipe title");
-            string title = GetNonEmptyStringFromUser();
-            Recipe recipe = new Recipe(title);
-            Console.WriteLine("What kind of recipe is this?");
-            for (int i =0; i < (int)RecipeType.UPPER_LIMIT; i += 1)
-            {
-                Console.WriteLine($"{i}.{(RecipeType)i}");
-            }
-            /* string input = Console.ReadLine();
-            int num  = int.Parse(input);
-            RecipeType  = (RecipeType) num; 
-            one line code below replace all the above 3 */
-            RecipeType choice = (RecipeType) int.Parse(Console.ReadLine());
-            List<Recipe> specificRecipes = _recipes[choice];
-            specificRecipes.Add(recipe);
+            Console.WriteLine("RECIPES!");
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
                 SqlCommand command = connection.CreateCommand();
                 command.CommandText = @"
-                insert into recipe(RecipeType, Recipe)
-                values (@Type, @name)
+                    SELECT RecipeTypeId
+                         , Name
+                      FROM Recipes
+                  ORDER BY RecipeTypeId
+                         , Name
                 ";
-                command.Parameters.AddWithValue("@Type", choice);
-                command.Parameters.AddWithValue("@name", title);
-                command.ExecuteNonQuery();
-            }
-        }
 
+                int currentRecipeTypeId = -323;
+                SqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    int recipeTypeId = reader.GetInt32(0);
+                    string title = reader.GetString(1);
+
+                    if (recipeTypeId != currentRecipeTypeId)
+                    {
+                        currentRecipeTypeId = recipeTypeId;
+                        RecipeType pretty = (RecipeType)currentRecipeTypeId;
+                        Console.WriteLine(pretty.ToString().ToUpper());
+                    }
+
+                    Console.WriteLine($"  {title}");
+                }
+            }
+
+            Console.ReadLine();
+        }
 
         private void DoSearchEverything()
         {
             Console.Clear();
-            Console.WriteLine("SEARCH!");
+            Console.WriteLine("SEARCH EVERYTHING!");
             Console.Write("Please enter a search term: ");
             string term = GetNonEmptyStringFromUser();
-            List<IMatchATerm> matchables = new List<IMatchATerm>();
-            matchables.AddRange(_contacts);
+
+            List<Contact> contacts = ReadAllContacts();
+            List<IMatchable> matchables = new List<IMatchable>();
+            matchables.AddRange(contacts);
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
                 SqlCommand command = connection.CreateCommand();
                 command.CommandText = @"
-                SELECT Recipe TypeId, Recipe Type, Recipe from Recipe";
+                    SELECT Name
+                      FROM Recipes
+                  ORDER BY Name
+                ";
+
                 SqlDataReader reader = command.ExecuteReader();
+
                 while (reader.Read())
                 {
-                    string recipeTitle = reader.GetString(1);
+                    string recipeTitle = reader.GetString(0);
                     Recipe recipe = new Recipe(recipeTitle);
                     matchables.Add(recipe);
                 }
-                foreach (IMatchATerm matcher in matchables)
-                {
-                    if (matcher.Matches(term))
-                    {
-                        Console.WriteLine($">{matcher}");
-                    }
-                }
+            }
 
-                Console.WriteLine("Press Enter to continue...");
-                Console.ReadLine();
+            foreach (IMatchable matcher in matchables)
+            {
+                if (matcher.Matches(term))
+                {
+                    Console.WriteLine($"> {matcher}");
+                }
+            }
+            Console.ReadLine();
+        }
+
+        private void DoAddRecipe()
+        {
+            Console.Clear();
+            Console.WriteLine("Please enter your recipe title:");
+            string title = GetNonEmptyStringFromUser();
+            Recipe recipe = new Recipe(title);
+
+            Console.WriteLine("What kind of recipe is this?");
+            for (int i = 0; i < (int)RecipeType.UPPER_LIMIT; i += 1)
+            {
+                Console.WriteLine($"{i}. {(RecipeType)i}");
+            }
+            /*
+            string input = Console.ReadLine();
+            int num = int.Parse(input);
+            RecipeType choice = (RecipeType) num;*/
+            RecipeType choice = (RecipeType)int.Parse(Console.ReadLine());
+            
+            List<Recipe> specificRecipes = _recipes[choice];
+            specificRecipes.Add(recipe);
+            /*_recipes[choice].Add(recipe);*/
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                SqlCommand command = connection.CreateCommand();
+                command.CommandText = @"
+                    insert into recipes(recipetypeid, name)
+                    values(@giraffe, @lemur)
+                ";
+                command.Parameters.AddWithValue("@giraffe", choice);
+                command.Parameters.AddWithValue("@lemur", title);
+                command.ExecuteNonQuery();
             }
         }
 
@@ -141,16 +187,25 @@ namespace AddressBook
             Console.Write("Search for a contact: ");
             string term = GetNonEmptyStringFromUser();
 
-            foreach (Contact contact in _contacts)
+            List<Contact> contacts = ReadAllContacts();
+            File.Delete(_contactsFileName);
+            foreach (Contact contact in contacts)
             {
                 if (contact.Matches(term))
                 {
-                    Console.Write($"Remove {contact}? (y/N)"); // hit 'enter' lines to 'N'//
+                    Console.Write($"Remove {contact}? (y/N)");
                     if (Console.ReadLine().ToLower() == "y")
                     {
-                        _contacts.Remove(contact);
-                        return;
+                        continue;
                     }
+                    else
+                    {
+                        PutInFile(contact);
+                    }
+                }
+                else
+                {
+                    PutInFile(contact);
                 }
             }
 
@@ -166,7 +221,8 @@ namespace AddressBook
             Console.Write("Please enter a search term: ");
             string term = GetNonEmptyStringFromUser();
 
-            foreach (Contact contact in _contacts)
+            List<Contact> contacts = ReadAllContacts();
+            foreach (Contact contact in contacts)
             {
                 if (contact.Matches(term))
                 {
@@ -182,83 +238,59 @@ namespace AddressBook
         {
             Console.Clear();
             Console.WriteLine("YOUR CONTACTS");
-            //SortedList<string, Contact> contacts = new SortedList<string, Contact>();
-            string fullPath = GetFolderPath();
-            using (StreamReader reader = File.OpenText(fullPath))
+
+            List<Contact> contacts = ReadAllContacts();
+
+            foreach (Contact contact in contacts)
+            {
+                Console.WriteLine(contact);
+            }
+
+            Console.ReadLine();
+        }
+
+        private List<Contact> ReadAllContacts()
+        {
+            List<Contact> contacts = new List<Contact>();
+            using (StreamReader reader = File.OpenText(_contactsFileName))
             {
                 while (!reader.EndOfStream)
                 {
                     string line = reader.ReadLine();
                     string[] parts = line.Split('|');
-                     if (parts[0] == "C")
+
+                    if (parts[0] == "Company")
                     {
-                        Console.WriteLine(parts[1], parts[2]);
+                        Company company = new Company(parts[1], parts[2]);
+                        contacts.Add(company);
                     }
-                     else if (parts[0] == "P")
+                    else if (parts[0] == "Person")
                     {
-                        Console.WriteLine(parts[1], parts[2], parts[3]);
+                        Person person = new Person(parts[1], parts[2], parts[3]);
+                        contacts.Add(person);
                     }
-                     else
+                    else
                     {
-                        Console.WriteLine("You have jumk in your contacts file");
+                        Console.WriteLine("You have junk in your contacts file.");
                     }
                 }
             }
+            contacts.Sort();
 
-            foreach (Contact contact in _contacts)
-            {
-                Console.WriteLine($"> {contact}");
-            }
-
-            Console.ReadLine();
-            Console.ReadLine();
+            return contacts;
         }
 
-        private void DoListRecipes()
-        {
-            Console.Clear();
-            Console.WriteLine("RECIPES");
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-                SqlCommand command = connection.CreateCommand();
-                command.CommandText = "SELECT Recipe TypeId, Recipe Type, Recipe FROM Recipe";
-                SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    int rowId = reader.GetInt32(0);
-                    string Type = reader.GetString(1);
-                    string Recipe = reader.GetString(2);
-                    Console.WriteLine($"{rowId},{Type},{Recipe}");
-                }              
-            }
-            Console.ReadLine();
-        }
-
-
-        private string GetFolderPath ()
-        {
-            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string fileName = "CONTACTS.DAT";
-            string fullPath = Path.Combine(desktopPath, fileName);
-            return fullPath;
-        }
         private void DoAddCompany()
         {
             Console.Clear();
             Console.WriteLine("Please enter information about the company.");
             Console.Write("Company name: ");
             string name = Console.ReadLine();
+
             Console.Write("Phone number: ");
             string phoneNumber = GetNonEmptyStringFromUser();
-            // write to a file
-            string fullPath = GetFolderPath();
-            using (StreamWriter writer = new StreamWriter(fullPath, true)) //relative path            
-            {
-                writer.WriteLine($"C|,{name},|,{phoneNumber}");             
-            }
 
- //           _contacts.Add(new Company(name, phoneNumber));
+            PutInFile(new Company(name, phoneNumber));
         }
 
         private void DoAddPerson()
@@ -273,14 +305,44 @@ namespace AddressBook
 
             Console.Write("Phone number: ");
             string phoneNumber = GetNonEmptyStringFromUser();
-            // Write to a file 
-            string fullPath = GetFolderPath();
-            using (StreamWriter writer = new StreamWriter(fullPath, true))//relative path            
+
+            PutInFile(new Person(firstName, lastName, phoneNumber));
+        }
+
+        private void PutInFile(Person person)
+        {
+            using (StreamWriter writer = File.AppendText(_contactsFileName))
             {
-                writer.WriteLine(string.Join("|",firstName , lastName,phoneNumber));
+                string firstName = person.GetFirstName();
+                string lastName = person.GetLastName();
+                string phoneNumber = person.GetPhoneNumber();
+                writer.WriteLine(string.Join("|", "Person", firstName, lastName, phoneNumber));
+            }
+        }
+
+        private void PutInFile(Company company)
+        {
+            using (StreamWriter writer = File.AppendText(_contactsFileName))
+            {
+                string name = company.GetName();
+                string phoneNumber = company.GetPhoneNumber();
+                writer.WriteLine(string.Join("|", "Company", name, phoneNumber));
+            }
+        }
+
+        private void PutInFile(Contact contact)
+        {
+            Person person = contact as Person;
+            if (person != null)
+            {
+                PutInFile(person);
             }
 
-         //   _contacts.Add(new Person(firstName, lastName, phoneNumber));
+            Company company = contact as Company;
+            if (company != null)
+            {
+                PutInFile(company);
+            }
         }
 
         private string GetNonEmptyStringFromUser()
@@ -305,30 +367,24 @@ namespace AddressBook
                 }
                 catch (FormatException)
                 {
-                    Console.WriteLine("you should type a number");
+                    Console.WriteLine("You should type a number.");
                 }
                 catch (InvalidOperationException)
                 {
-                    Console.WriteLine("THAT WAS BAD! DO AGAIN");
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Capture any kind of exception");
+                    Console.WriteLine("THAT WAS BAD! DO AGAIN!");
                 }
                 finally
                 {
-                    Console.WriteLine("This will always be printed");
-
+                    Console.WriteLine("THIS will ALWAYS be PRINTED.");
                 }
             }
         }
 
         private MenuOption GetMenuOption()
         {
-
             int choice = GetNumberFromUser();
 
-            while (choice < 0 || choice > (int)MenuOption.UPPER_LIMIT)
+            while (choice < 0 || choice >= (int)MenuOption.UPPER_LIMIT)
             {
                 Console.WriteLine("That is not valid.");
                 choice = GetNumberFromUser();
@@ -346,20 +402,20 @@ namespace AddressBook
             Console.WriteLine("3. List all contacts");
             Console.WriteLine("4. Search contacts");
             Console.WriteLine("5. Remove a contact");
-            Console.WriteLine("------------------------");
-            Console.WriteLine("6. Add Recipe");
-            Console.WriteLine("7. List all Recipes");
-            Console.WriteLine("------------------------");
-            Console.WriteLine("8. Search Everything");
+            Console.WriteLine("-----------------------");
+            Console.WriteLine("6. Add a recipe");
+            Console.WriteLine("7. List recipes");
+            Console.WriteLine("-----------------------");
+            Console.WriteLine("8. Search everything!");
             Console.WriteLine();
             Console.WriteLine("0. Exit");
             Console.WriteLine();
             Console.Write("What would you like to do? ");
-        }    
-      
+        }
 
         private readonly List<Contact> _contacts;
         private Dictionary<RecipeType, List<Recipe>> _recipes;
         private readonly string _connectionString;
+        private readonly string _contactsFileName;
     }
 }

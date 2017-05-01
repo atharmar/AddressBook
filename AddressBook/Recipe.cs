@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AddressBook
+﻿namespace AddressBook
 {
-    public class Recipe: IMatchATerm  
+    public class Recipe : IMatchable
     {
-        public Recipe (string title)
+        public Recipe(string title)
         {
             _title = title;
         }
@@ -20,8 +14,9 @@ namespace AddressBook
 
         public override string ToString()
         {
-            return _title;
+            return $"RECIPE: {_title}";
         }
+
         private string _title;
     }
 }
