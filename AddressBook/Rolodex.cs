@@ -220,26 +220,15 @@ namespace AddressBook
 
         private int GetNumberFromUser()
         {
-            while (true)
+            int value;
+            string input = Console.ReadLine();
+            while (!int.TryParse(input, out value))
             {
-                try
-                {
-                    string input = Console.ReadLine();
-                    return int.Parse(input);
-                }
-                catch (FormatException)
-                {
-                    Console.WriteLine("You should type a number.");
-                }
-                catch (InvalidOperationException)
-                {
-                    Console.WriteLine("THAT WAS BAD! DO AGAIN!");
-                }
-                finally
-                {
-                    Console.WriteLine("THIS will ALWAYS be PRINTED.");
-                }
+                Console.WriteLine("You should type a number.");
+                input = Console.ReadLine();
             }
+
+            return value;
         }
 
         private MenuOption GetMenuOption()
