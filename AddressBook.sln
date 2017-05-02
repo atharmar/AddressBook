@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddressBook", "AddressBook\AddressBook.csproj", "{9122586C-5F92-47E6-B1E8-03A05B26A618}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddressBook.Tests", "AddressBook.Tests\AddressBook.Tests.csproj", "{151292FF-7976-4119-B3D6-26D94BCFEFA2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{9122586C-5F92-47E6-B1E8-03A05B26A618}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9122586C-5F92-47E6-B1E8-03A05B26A618}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9122586C-5F92-47E6-B1E8-03A05B26A618}.Release|Any CPU.Build.0 = Release|Any CPU
+		{151292FF-7976-4119-B3D6-26D94BCFEFA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{151292FF-7976-4119-B3D6-26D94BCFEFA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{151292FF-7976-4119-B3D6-26D94BCFEFA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{151292FF-7976-4119-B3D6-26D94BCFEFA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
