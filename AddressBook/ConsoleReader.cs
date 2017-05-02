@@ -17,6 +17,7 @@ namespace AddressBook
 
         public int GetNumber()
         {
+            //Get the number//
             int value;
             string input = Console.ReadLine();
             while (!int.TryParse(input, out value))
