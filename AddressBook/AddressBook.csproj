@@ -45,8 +45,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Company.cs" />
+    <Compile Include="ConsoleReader.cs" />
     <Compile Include="Contact.cs" />
     <Compile Include="ContactsRepository.cs" />
+    <Compile Include="IGetInputFromUsers.cs" />
     <Compile Include="IHandleContacts.cs" />
     <Compile Include="IHandleRecipes.cs" />
     <Compile Include="IMatchable.cs" />

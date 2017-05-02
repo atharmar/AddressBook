@@ -22,7 +22,8 @@ namespace AddressBook
 
             ContactsRepository contactsRepo = new ContactsRepository(contactsFileName);
             RecipesRepository recipesRepo = new RecipesRepository(connectionString);
-            Rolodex rolodex = new Rolodex(contactsRepo, recipesRepo);
+            ConsoleReader consoleReader = new ConsoleReader();
+            Rolodex rolodex = new Rolodex(contactsRepo, recipesRepo, consoleReader);
             rolodex.DoStuff();
         }
     }
